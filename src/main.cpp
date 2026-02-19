@@ -125,30 +125,5 @@ void loop() {
         Serial.println();
     }
 }
-/*
-void loop() {
-    uint8_t irq = mcp2515.getInterrupts();
-        
-    if (irq & MCP2515::CANINTF_RX0IF) {
-        struct can_frame frame;
-        if (mcp2515.readMessage(MCP2515::RXB0, &frame) == MCP2515::ERROR_OK) {
-            messagesReceived++;
-              
-            Serial.print(F("["));
-            Serial.print(messagesReceived);
-            Serial.print(F("] Recebido: 0x"));
-            Serial.print(frame.can_id, HEX);
-            Serial.print(F(" | Dados: "));
-               
-            for (int i = 0; i < frame.can_dlc; i++) {
-                if (frame.data[i] < 0x10) Serial.print(F("0"));
-                Serial.print(frame.data[i], HEX);
-                Serial.print(F(" "));
-           }
-            Serial.println();
-        }
-    }
-}
-*/
 
 #endif
