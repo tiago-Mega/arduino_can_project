@@ -4,9 +4,9 @@
  * Definir NODE_MODE no platformio.ini
  */
 
+#include <SPI.h>
 #include <Arduino.h>
 #include <mcp2515.h>
-#include <SPI.h>
 
 // Configuração do nó (definir no platformio.ini)
 // -DNODE_MODE=TRANSMITTER ou -DNODE_MODE=RECEIVER
@@ -16,6 +16,7 @@
 
 #define TRANSMITTER 1
 #define RECEIVER 2
+#define BUZZER 3
 
 MCP2515 mcp2515(10);
 struct can_frame canMsg;
@@ -35,7 +36,7 @@ void setup() {
     Serial.println(F("=== TRANSMITTER MODE ==="));
     
     mcp2515.reset();
-    mcp2515.setBitrate(CAN_250KBPS, MCP_16MHZ);
+    mcp2515.setBitrate(CAN_500KBPS, MCP_8MHZ);
     mcp2515.setNormalMode();
     
     // Teste de leitura do modo
@@ -88,7 +89,7 @@ void setup() {
     Serial.println(F("=== RECEIVER MODE ==="));
     
     mcp2515.reset();
-    mcp2515.setBitrate(CAN_250KBPS, MCP_16MHZ);
+    mcp2515.setBitrate(CAN_500KBPS, MCP_16MHZ);
     mcp2515.setNormalMode();
     
     // Teste de leitura do modo
@@ -123,6 +124,53 @@ void loop() {
             Serial.print(F(" "));
         }
         Serial.println();
+    }
+}
+
+// ═══════════════════════════════════════════════════════
+// CÓDIGO DO Buzzer Node
+// ═══════════════════════════════════════════════════════
+#elif NODE_MODE == BUZZER
+
+
+#define BUZZER_PIN        3
+#define BUZZ_INTERVAL_MS  10000UL
+#define BUZZ_DURATION_MS  100UL
+
+unsigned long lastBuzzTime  = 0;
+unsigned long buzzStartTime = 0;
+bool          buzzerActive  = false;
+
+void setup() {
+    Serial.begin(9600);
+    pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(BUZZER_PIN, LOW);
+    Serial.println(F("=== BUZZER NODE READY ==="));
+
+    // Boot test buzz
+    digitalWrite(BUZZER_PIN, HIGH);
+    delay(200);
+    digitalWrite(BUZZER_PIN, LOW);
+    lastBuzzTime = millis();   // ← reset timer AFTER boot buzz
+}
+
+void loop() {
+    unsigned long now = millis();
+
+    // --- Trigger every 30 s ---
+    if (!buzzerActive && (now - lastBuzzTime >= BUZZ_INTERVAL_MS)) {
+        buzzerActive  = true;
+        buzzStartTime = now;
+        lastBuzzTime  = now;
+        digitalWrite(BUZZER_PIN, HIGH);
+        Serial.println(F("BUZZ ON"));
+    }
+
+    // --- Turn off after 100 ms ---
+    if (buzzerActive && (now - buzzStartTime >= BUZZ_DURATION_MS)) {
+        buzzerActive = false;
+        digitalWrite(BUZZER_PIN, LOW);
+        Serial.println(F("BUZZ OFF"));
     }
 }
 
